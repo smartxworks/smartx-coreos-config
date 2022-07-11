@@ -15,7 +15,7 @@ extra-kargs:
 ignition-network-kcmdline: []
 
 # Optional remote by which to prefix the deployed OSTree ref
-ostree-remote: fedora
+ostree-remote: smartx
 
 # opt in to using the `metadata_csum_seed` feature of the ext4 filesystem
 # for the /boot filesystem. Support for this was only recently added to grub

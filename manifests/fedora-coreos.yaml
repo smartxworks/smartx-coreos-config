@@ -2,21 +2,20 @@
 # into "official" builds of Fedora CoreOS (such as including `fedora-release-coreos`)
 # or are very "opinionated" like disabling SSH passwords by default.
 
-ref: fedora/${basearch}/coreos/${stream}
+ref: smartx/${basearch}/coreos/${stream}
 rojig:
   license: MIT
-  name: fedora-coreos
-  summary: Fedora CoreOS ${stream}
+  name: smartx-coreos
+  summary: SmartX CoreOS ${stream}
 
 add-commit-metadata:
   fedora-coreos.stream: ${stream}
 
 
-include: fedora-coreos-base.yaml
+include:
+  - fedora-coreos-base.yaml
+  - disable-zincati-and-pinger.yaml
 conditional-include:
-  - if: prod == false
-    # long-term, would be good to support specifying a nested TreeComposeConfig
-    include: disable-zincati-and-pinger.yaml
   - if: basearch == "aarch64"
     # Fixup for kdump on aarch64 AWS instances
     include: kdump-aarch64-aws-workaround.yaml
@@ -26,6 +25,7 @@ conditional-include:
 
 ostree-layers:
   - overlay/15fcos
+  - overlay/10scos
 
 automatic-version-prefix: "${releasever}.<date:%Y%m%d>.dev"
 mutate-os-release: "${releasever}"
@@ -33,6 +33,12 @@ mutate-os-release: "${releasever}"
 # All Fedora CoreOS streams share the same pool for locked files.
 lockfile-repos:
   - fedora-coreos-pool
+
+repos:
+  - kubernetes
+  - smartx
+  - fedora
+  - fedora-updates
 
 packages:
   - fedora-release-coreos
@@ -53,6 +59,11 @@ packages:
   - zincati
   # Include and set the default editor
   - nano nano-default-editor
+  - kubelet-1.21.13
+  - kubeadm-1.21.13
+  - kubectl-1.21.13
+  - ske-welcome-0.1.0-36.kubernetes.1.21.13.20220624.fc36
+  - ske-admin-0.1.0-36.kubernetes.1.21.13.20220624.fc36
 
 etc-group-members:
   # Add the docker group to /etc/group
@@ -91,6 +102,10 @@ postprocess:
     cat /usr/etc/rpm-ostreed.conf >> /tmp/rpm-ostreed.conf
     cp /tmp/rpm-ostreed.conf /usr/etc/rpm-ostreed.conf
     rm /tmp/rpm-ostreed.conf
+  - |
+    #!/usr/bin/env bash
+    set -xeuo pipefail
+    rm /etc/ostree/remotes.d/*.conf
 
 
 remove-from-packages:
